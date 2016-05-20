@@ -1,23 +1,38 @@
 # import the Flask class from the flask module
-from flask import Flask, render_template, redirect, url_for, request, session
+from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask.ext.sqlalchemy import SQLAlchemy
+from functools import wraps
+#import sqlite3
 
 # create the application object
 app = Flask(__name__)
 
-# LoginManager class
-# login_manager = LoginManager()
+app.secret_key = "this_is_the_secret_key"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 
-#login_manager.init_app(app)
+#create the sqlalchemy object
+db = SQLAlchemy(app)
 
-# provide callback used to reload the user object from the user ID stored in the session
-#@login_manager.user_loader
-#def load_user(user_id):
-#    return User.get(user_id)
+from models import *
+
+# login required decorator
+def login_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+        else:
+            flash('You need to login first.')
+            return redirect(url_for('login'))
+    return wrap
 
 # use decorators to link the function to a url
 @app.route('/')
+@login_required
 def home():
-    return "Hello, World!"  # return a string
+    # return "Hello, World!"  # return a string
+    posts = db.session.query(BlogPost).all()
+    return render_template('index.html', posts=posts)  # render a template
 
 @app.route('/welcome')
 def welcome():
@@ -29,16 +44,23 @@ def login():
     error = None
     if request.method == 'POST':
         if request.form['username'] != 'admin' or request.form['password'] != 'admin':
-            error = 'Invalid Credentials. Please try again.'
+            error = 'Invalid credentials. Please try again.'
         else:
             session["logged_in"] = True
+            flash('You were just logged in!')
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
 
-@app.route('logout')
+@app.route('/logout')
+@login_required
 def logout():
     session.pop('logged_in',None)
+    flash('You were just logged out!')
     return redirect(url_for('welcome'))
+
+
+#def connect_db():
+#    return sqlite3.connect(app.database)
 
 # start the server with the 'run()' method
 if __name__ == '__main__':
