@@ -4,6 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.bcrypt import Bcrypt
 from functools import wraps
 #import sqlite3
+import MySQLdb
 
 # create the application object
 app = Flask(__name__)
@@ -18,9 +19,19 @@ app.config.from_object('config.BaseConfig')
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
 
 #create the sqlalchemy object
-db = SQLAlchemy(app)
+#db = SQLAlchemy(app)
 
-from models import *
+#create the mySQL object
+db = MySQLdb.connect(host = "dallas146.arvixeshared.com",
+                     db = "melodysu_database1",
+                     user = "melodysu_msue",
+                     passwd = "Melody88")
+
+cur = db.cursor()
+
+username =""
+#from models import *
+from regex import *
 
 # login required decorator
 def login_required(f):
@@ -41,6 +52,20 @@ def home():
     posts = db.session.query(BlogPost).all()
     return render_template('index.html', posts=posts)  # render a template
 
+@app.route('/watchlist')
+def watchlist():
+
+    #posts = db.session.query(BlogPost).all()
+    
+    command = "SELECT FollowedTickers from melodysu_database1.Users WHERE Username = '" + username + "'"
+    
+    cur.execute(command)
+    for row in cur.fetchall():
+        x = row[0]
+    x = str(x)
+    data = get_data(x)
+    return render_template('watchlist.html', data = data)
+
 @app.route('/welcome')
 def welcome():
     return render_template('welcome.html')  # render a template
@@ -50,12 +75,30 @@ def welcome():
 def login():
     error = None
     if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        command = "Select Count(*) from melodysu_database1.Users where Username='" + username + "' and Password= '" + password + "'"
+        #command = "Select * From 'Users' where 1"
+        cur.execute(command)
+
+        for row in cur.fetchall():
+            x = row[0]
+        if x == 1:
+            session["logged_in"] = True
+            flash('You were just logged in!')
+            return redirect(url_for('watchlist'))
+        else:
+            error = "Invalid credentials. Please try again."
+        """
         if request.form['username'] != 'admin' or request.form['password'] != 'admin':
             error = 'Invalid credentials. Please try again.'
+
         else:
             session["logged_in"] = True
             flash('You were just logged in!')
-            return redirect(url_for('home'))
+            return redirect(url_for('watchlist'))
+        """
+        
     return render_template('login.html', error=error)
 
 @app.route('/logout')
@@ -64,6 +107,7 @@ def logout():
     session.pop('logged_in',None)
     flash('You were just logged out!')
     return redirect(url_for('welcome'))
+
 
 
 #def connect_db():

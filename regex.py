@@ -27,5 +27,5 @@ def get_data(symbols):
         data.append([symbol,bid,ask,last,values[4]])
     return data
 
-symbols = 'fb goog aapl scty'
-print get_data(symbols)
+#symbols = 'fb goog aapl scty'
+#print get_data(symbols)
