@@ -21,9 +21,9 @@ def get_data(symbols):
     for r in rows:
         values = [x for x in r.split(',')]
         symbol = values[0][1:-1]
-        ask = float(values[1])
-        bid = float(values[2])
-        last = float(values[3])
+        ask = values[1]
+        bid = values[2]
+        last = values[3]
         data.append([symbol,bid,ask,last,values[4]])
     return data
 

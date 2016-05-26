@@ -1,73 +1,35 @@
 {% extends "indexDash.html" %}
 {% block content %}
 
+<!--
 {% for dataentry in data %}
   <strong>Title:</strong> {{ dataentry }} <br>
 
 <br>
 {% endfor %}
+-->
 
 <div class="table-responsive">
     <table class="table table-striped">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Header</th>
-          <th>Header</th>
-          <th>Header</th>
-          <th>Header</th>
+          <th>Symbol</th>
+          <th>Ask</th>
+          <th>Bid</th>
+          <th>Last</th>
+          <th>Time</th>
         </tr>
       </thead>
       <tbody>
+        {% for dataentry in data %}
         <tr>
-          <td>1,001</td>
-          <td>Lorem</td>
-          <td>ipsum</td>
-          <td>dolor</td>
-          <td>sit</td>
+            <td>{{ dataentry[0] }}</td>
+            <td>{{ dataentry[1] }}</td>
+            <td>{{ dataentry[2] }}</td>
+            <td>{{ dataentry[3] }}</td>
+            <td>{{ (dataentry[4])[1:7] }}</td>
         </tr>
-        <tr>
-          <td>1,002</td>
-          <td>amet</td>
-          <td>consectetur</td>
-          <td>adipiscing</td>
-          <td>elit</td>
-        </tr>
-        <tr>
-          <td>1,003</td>
-          <td>Integer</td>
-          <td>nec</td>
-          <td>odio</td>
-          <td>Praesent</td>
-        </tr>
-        <tr>
-          <td>1,003</td>
-          <td>libero</td>
-          <td>Sed</td>
-          <td>cursus</td>
-          <td>ante</td>
-        </tr>
-        <tr>
-          <td>1,004</td>
-          <td>dapibus</td>
-          <td>diam</td>
-          <td>Sed</td>
-          <td>nisi</td>
-        </tr>
-        <tr>
-          <td>1,005</td>
-          <td>Nulla</td>
-          <td>quis</td>
-          <td>sem</td>
-          <td>at</td>
-        </tr>
-        <tr>
-          <td>1,006</td>
-          <td>nibh</td>
-          <td>elementum</td>
-          <td>imperdiet</td>
-          <td>Duis</td>
-        </tr>
+        {% endfor %}
 
       </tbody>
     </table>

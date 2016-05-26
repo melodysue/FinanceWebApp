@@ -29,7 +29,7 @@ db = MySQLdb.connect(host = "dallas146.arvixeshared.com",
 
 cur = db.cursor()
 
-username =""
+username = ""
 #from models import *
 from regex import *
 
@@ -53,17 +53,22 @@ def home():
     return render_template('index.html', posts=posts)  # render a template
 
 @app.route('/watchlist')
+@login_required
 def watchlist():
 
     #posts = db.session.query(BlogPost).all()
-    
+    global username
+
     command = "SELECT FollowedTickers from melodysu_database1.Users WHERE Username = '" + username + "'"
-    
+    #flash(command1)
+    #command = "SELECT FollowedTickers from melodysu_database1.Users WHERE Username = 'melodysue'"
+
     cur.execute(command)
     for row in cur.fetchall():
         x = row[0]
     x = str(x)
     data = get_data(x)
+
     return render_template('watchlist.html', data = data)
 
 @app.route('/welcome')
@@ -75,6 +80,7 @@ def welcome():
 def login():
     error = None
     if request.method == 'POST':
+        global username
         username = request.form['username']
         password = request.form['password']
         command = "Select Count(*) from melodysu_database1.Users where Username='" + username + "' and Password= '" + password + "'"
