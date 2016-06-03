@@ -89,7 +89,11 @@ class Worker(object):
         if self.cfg.reload:
             def changed(fname):
                 self.log.info("Worker reloading: %s modified", fname)
-                os.kill(self.pid, signal.SIGQUIT)
+                self.alive = False
+                self.cfg.worker_int(self)
+                time.sleep(0.1)
+                sys.exit(0)
+
             self.reloader = Reloader(callback=changed)
             self.reloader.start()
 
@@ -250,4 +254,4 @@ class Worker(object):
 
     def handle_winch(self, sig, fname):
         # Ignore SIGWINCH in worker. Fixes a crash on OpenBSD.
-        return
+        self.log.debug("worker: SIGWINCH ignored.")

@@ -108,10 +108,7 @@ class UnixSocket(BaseSocket):
                     os.remove(addr)
                 else:
                     raise ValueError("%r is not a socket" % addr)
-        self.parent = os.getpid()
         super(UnixSocket, self).__init__(addr, conf, log, fd=fd)
-        # each arbiter grabs a shared lock on the unix socket.
-        fcntl.lockf(self.sock, fcntl.LOCK_SH | fcntl.LOCK_NB)
 
     def __str__(self):
         return "unix:%s" % self.cfg_addr
@@ -122,18 +119,8 @@ class UnixSocket(BaseSocket):
         util.chown(self.cfg_addr, self.conf.uid, self.conf.gid)
         os.umask(old_umask)
 
-
     def close(self):
-        if self.parent == os.getpid():
-            # attempt to acquire an exclusive lock on the unix socket.
-            # if we're the only arbiter running, the lock will succeed, and
-            # we can safely rm the socket.
-            try:
-                fcntl.lockf(self.sock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except:
-                pass
-            else:
-                os.unlink(self.cfg_addr)
+        os.unlink(self.cfg_addr)
         super(UnixSocket, self).close()
 
 
@@ -217,7 +204,6 @@ def create_sockets(conf, log):
     # no sockets is bound, first initialization of gunicorn in this env.
     for addr in laddr:
         sock_type = _sock_type(addr)
-
         # If we fail to create a socket from GUNICORN_FD
         # we fall through and try and open the socket
         # normally.
@@ -231,6 +217,8 @@ def create_sockets(conf, log):
                 if e.args[0] == errno.EADDRNOTAVAIL:
                     log.error("Invalid address: %s", str(addr))
                 if i < 5:
+                    msg = "connection to {addr} failed: {error}"
+                    log.debug(msg.format(addr=str(addr), error=str(e)))
                     log.error("Retrying in 1 second.")
                     time.sleep(1)
             else:

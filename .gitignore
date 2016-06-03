@@ -1,3 +1,6 @@
 venv
-*.pyc
+*.pyx
 *.db
+trial1
+WebScraping
+python-getting-started

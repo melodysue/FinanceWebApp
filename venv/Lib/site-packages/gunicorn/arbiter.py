@@ -11,6 +11,7 @@ import select
 import signal
 import sys
 import time
+import traceback
 
 from gunicorn.errors import HaltServer, AppImportError
 from gunicorn.pidfile import Pidfile
@@ -62,6 +63,7 @@ class Arbiter(object):
         self.pidfile = None
         self.worker_age = 0
         self.reexec_pid = 0
+        self.master_pid = 0
         self.master_name = "Master"
 
         cwd = util.getcwd()
@@ -123,9 +125,17 @@ class Arbiter(object):
         """
         self.log.info("Starting gunicorn %s", __version__)
 
+        if 'GUNICORN_PID' in os.environ:
+            self.master_pid = int(os.environ.get('GUNICORN_PID'))
+            self.proc_name = self.proc_name + ".2"
+            self.master_name = "Master.2"
+
         self.pid = os.getpid()
         if self.cfg.pidfile is not None:
-            self.pidfile = Pidfile(self.cfg.pidfile)
+            pidname = self.cfg.pidfile
+            if self.master_pid != 0:
+                pidname += ".2"
+            self.pidfile = Pidfile(pidname)
             self.pidfile.create(self.pid)
         self.cfg.on_starting(self)
 
@@ -177,7 +187,10 @@ class Arbiter(object):
 
         try:
             self.manage_workers()
+
             while True:
+                self.maybe_promote_master()
+
                 sig = self.SIG_QUEUE.pop(0) if len(self.SIG_QUEUE) else None
                 if sig is None:
                     self.sleep()
@@ -286,6 +299,23 @@ class Arbiter(object):
         else:
             self.log.debug("SIGWINCH ignored. Not daemonized")
 
+    def maybe_promote_master(self):
+        if self.master_pid == 0:
+            return
+
+        if self.master_pid != os.getppid():
+            self.log.info("Master has been promoted.")
+            # reset master infos
+            self.master_name = "Master"
+            self.master_pid = 0
+            self.proc_name = self.cfg.proc_name
+            del os.environ['GUNICORN_PID']
+            # rename the pidfile
+            if self.pidfile is not None:
+                self.pidfile.rename(self.cfg.pidfile)
+            # reset proctitle
+            util._setproctitle("master [%s]" % self.proc_name)
+
     def wakeup(self):
         """\
         Wake up the arbiter by writing to the PIPE
@@ -334,8 +364,11 @@ class Arbiter(object):
         :attr graceful: boolean, If True (the default) workers will be
         killed gracefully  (ie. trying to wait for the current connection)
         """
-        for l in self.LISTENERS:
-            l.close()
+
+        if self.reexec_pid == 0 and self.master_pid == 0:
+            for l in self.LISTENERS:
+                l.close()
+
         self.LISTENERS = []
         sig = signal.SIGTERM
         if not graceful:
@@ -353,20 +386,27 @@ class Arbiter(object):
         """\
         Relaunch the master and workers.
         """
-        if self.pidfile is not None:
-            self.pidfile.rename("%s.oldbin" % self.pidfile.fname)
+        if self.reexec_pid != 0:
+            self.log.warning("USR2 signal ignored. Child exists.")
+            return
 
+        if self.master_pid != 0:
+            self.log.warning("USR2 signal ignored. Parent exists")
+            return
+
+        master_pid = os.getpid()
         self.reexec_pid = os.fork()
         if self.reexec_pid != 0:
-            self.master_name = "Old Master"
             return
+
+        self.cfg.pre_exec(self)
 
         environ = self.cfg.env_orig.copy()
         fds = [l.fileno() for l in self.LISTENERS]
         environ['GUNICORN_FD'] = ",".join([str(fd) for fd in fds])
+        environ['GUNICORN_PID'] = str(master_pid)
 
         os.chdir(self.START_CTX['cwd'])
-        self.cfg.pre_exec(self)
 
         # exec the process using the original environnement
         os.execvpe(self.START_CTX[0], self.START_CTX['args'], environ)
@@ -535,7 +575,8 @@ class Arbiter(object):
                 worker.tmp.close()
                 self.cfg.worker_exit(self, worker)
             except:
-                pass
+                self.log.warning("Exception during worker exit:\n%s",
+                                  traceback.format_exc())
 
     def spawn_workers(self):
         """\
