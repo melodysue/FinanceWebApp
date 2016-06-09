@@ -12,8 +12,9 @@ app = Flask(__name__)
 
 # config
 import os
-print os.environ['APP_SETTINGS']
-app.config.from_object(os.environ['APP_SETTINGS'])
+#print os.environ['APP_SETTINGS']
+#app.config.from_object(os.environ['APP_SETTINGS'])
+app.config.from_object(config.BaseConfig)
 
 # create the sqlalchemy object
 db = SQLAlchemy(app)
