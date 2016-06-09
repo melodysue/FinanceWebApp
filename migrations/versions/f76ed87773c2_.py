@@ -23,7 +23,6 @@ def upgrade():
     sa.Column('password', sa.VARCHAR(), autoincrement=False, nullable=False),
     sa.Column('followed_tickers', sa.VARCHAR(), autoincrement=False, nullable=True),
     sa.PrimaryKeyConstraint('id', name=u'users_pkey')
-
     op.add_column('posts', sa.Column('author_id', sa.INTEGER(), autoincrement=False, nullable=True))
     op.create_foreign_key(u'posts_author_id_fkey', 'posts', 'users', ['author_id'], ['id'])
     
