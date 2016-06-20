@@ -6,6 +6,8 @@ from project import db
 from project.models import BlogPost
 from flask import render_template, Blueprint
 from flask_login import login_required
+from flask_table import Table, Col
+
 
 ################
 #### config ####
@@ -33,5 +35,26 @@ def home():
 @home_blueprint.route('/welcome')
 def welcome():
     return render_template('welcome.html')  # render a template
+
+@home_blueprint.route('/targeted-lead-list')
+def targeted():
+    # Declare your table
+    class ItemTable(Table):
+        title = Col('Title')
+        description = Col('Description')
+
+    # Get some objects
+    class Item(object):
+        def __init__(self, title, description):
+            self.title = title
+            self.description = description
+
+    items = [Item('Name1', 'Description1'),
+             Item('Name2', 'Description2'),
+             Item('Name3', 'Description3')]
+
+    # Populate the table
+    table = ItemTable(items)
+    return render_template('targetedLeadList.html', table=table)
 
 
