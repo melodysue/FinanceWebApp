@@ -30,7 +30,7 @@ class User(db.Model):
     email = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
     posts = relationship("BlogPost", backref="author")
-    followed_tickers = db.Column(db.String, nullable=True)
+    #followed_tickers = db.Column(db.String, nullable=True)
 
     def __init__(self, name, email, password):
         self.name = name

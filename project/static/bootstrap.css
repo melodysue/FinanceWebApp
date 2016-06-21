@@ -2261,6 +2261,11 @@ caption {
 th {
   text-align: left;
 }
+
+.green {
+  background-color: #00FF40;
+}
+
 .table {
   width: 100%;
   max-width: 100%;
