@@ -1,0 +1,25 @@
+class Following(db.Model):
+
+    __tablename__ = "followed_tickers"
+
+    id = db.Column(db.Integer, primary_key=True)
+    author_id = db.Column(db.Integer, ForeignKey('users.id'))
+    ticker_id = db.Column(db.Integer, ForeignKey('tickers.id'))
+    
+
+
+
+class Ticker(db.Model):
+
+    __tablename__ = "tickers"
+
+    ticker_id = db.Column(db.Integer, primary_key=True)
+    ticker_symbol = db.Column(db.String, nullable=False)
+    company = db.Column(db.String, nullable=False)
+    followed_tickers = relationship("Following", backref="follow")
+
+    def __init__(self, ticker_symbol, company):
+        self.ticker_symbol = ticker_symbol
+        self.company = company
+    def __repr__(self):
+        return '<{}>'.format(self.ticker_symbol)

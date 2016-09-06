@@ -5,6 +5,7 @@
 from flask import flash, redirect, render_template, request, \
     url_for, Blueprint
 from flask_login import login_user, login_required, logout_user
+
 from form import LoginForm, RegisterForm
 from project import db
 from project.models import User, bcrypt
@@ -59,6 +60,7 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         user = User(
+            #name=form.name.data,
             name=form.username.data,
             email=form.email.data,
             password=form.password.data

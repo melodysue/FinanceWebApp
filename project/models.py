@@ -26,13 +26,14 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
+    #username = db.Column(db.String, nullable=True)
     name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, nullable=False)
     password = db.Column(db.String, nullable=False)
     posts = relationship("BlogPost", backref="author")
-    #followed_tickers = db.Column(db.String, nullable=True)
 
     def __init__(self, name, email, password):
+        #self.username = username
         self.name = name
         self.email = email
         self.password = bcrypt.generate_password_hash(password)
@@ -51,3 +52,33 @@ class User(db.Model):
         
     def __repr__(self):
         return '<name {}'.format(self.name)
+
+'''
+class Following(db.Model):
+
+    __tablename__ = "followed_tickers"
+
+    author_id = db.Column(db.Integer, primary_key=True, ForeignKey('users.id'))
+    ticker_id = db.Column(db.Integer, primary_key=True, ForeignKey('tickers.id'))
+
+    def __init__(self):
+        self = self
+
+    def __repr__(self):
+        return '<{}>'
+
+class Ticker(db.Model):
+
+    __tablename__ = "tickers"
+
+    ticker_id = db.Column(db.Integer, primary_key=True)
+    ticker_symbol = db.Column(db.String, nullable=False)
+    company = db.Column(db.String, nullable=False)
+
+    def __init__(self, ticker_symbol, company):
+        self.ticker_symbol = ticker_symbol
+        self.company = company
+    def __repr__(self):
+        return '<{}>'.format(self.ticker_symbol)
+
+'''
