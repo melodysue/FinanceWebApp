@@ -11,7 +11,8 @@ Reminders for myself:
       source venv/bin/activate
 - Make sure to set APP_SETTINGS and DATABASE_URL local environment variable when starting up terminal each time by running these commands:
       export APP_SETTINGS="config.DevelopmentConfig"
-      export DATABASE_URL="postgresql://localhost/financewebapp"
+      export DATABASE_URL="postgresql://localhost/financewebapp_dev"
 - To run the app locally, use this command:
       python manage.py runserver
+- psql database name is financewebapp_dev. Use \c to connect and \d to view
 - Add comments!!!
