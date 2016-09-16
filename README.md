@@ -2,6 +2,13 @@
 This is the web-version of the C# Finance Application I was in the process of creating.
 Currently the application is connected to a postgreSQL database hosted by Heroku.
 
+You can find the web application at:
+	https://financewebapp.herokuapp.com
+with sample login credentials:
+username: admin
+password: admin
+* Web app may not be up-to-date
+
 Features:
 - Based on the user who is logged in, there is a custom Watchlist that displays the companies that the user
 is following and the ask and bid prices with a 15 minute delay. The information is pulled from Yahoo Finance.

@@ -49,6 +49,7 @@ def watchlist():
 @home_blueprint.route('/targeted-lead-list')
 @login_required
 def targeted():
+    '''
     # Declare your table
     class ItemTable(Table):
         classes = ['table', 'table-striped']
@@ -78,5 +79,7 @@ def targeted():
     items = db.session.query(User).all()
     table = ItemTable(items)
     return render_template('targetedLeadList.html', table=table)
+    '''
+    return render_template('targetedLeadList.html')
 
 
