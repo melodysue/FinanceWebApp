@@ -50,7 +50,7 @@ def watchlist():
 @login_required
 def targeted():
     '''
-    # Declare your table
+    # Declare the table
     class ItemTable(Table):
         classes = ['table', 'table-striped']
         name = Col('Name')
